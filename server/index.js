@@ -11,10 +11,10 @@ app.use(cors());
 
 app.use(express.json());
 
-const userRoutes = require('./routes/userRoutes');
-const applicationRoutes = require('./routes/applicationRoutes');
-const jobRoutes = require('./routes/jobRoutes');
-const companyRoutes = require('./routes/companyRoutes');
+const userRoutes = require('../routes/userRoutes');
+const applicationRoutes = require('../routes/applicationRoutes');
+const jobRoutes = require('../routes/jobRoutes');
+const companyRoutes = require('../routes/companyRoutes');
 
 app.use('/users', userRoutes);
 app.use('/applications', applicationRoutes);

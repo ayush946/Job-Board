@@ -1,11 +1,12 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const jwtAuth = require("../lib/jwtAuth");
+
 const JobApplication = require("../models/JobApplication");
 
 const router = express.Router();
 
 // Create an JobApplication
-router.post("/new", async (req, res) => {
+router.post("/new", jwtAuth, async (req, res) => {
   try {
     const user = req.user;
     if (user.type !== "applicant") {
@@ -49,7 +50,7 @@ router.post("/new", async (req, res) => {
 });
 
 // Get All Applications of a particular applicant (My jobs section)
-router.get("/all", async (req, res) => {
+router.get("/all", jwtAuth, async (req, res) => {
   try {
     const user = req.user;
     const userType = user.type;
@@ -87,7 +88,7 @@ router.get("/all", async (req, res) => {
 
 // View JobApplication by ID
 // todo: test
-router.get("/view/:id", async (req, res) => {
+router.get("/view/:id", jwtAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const application = await JobApplication.findById(id).populate('applicantId jobId');
@@ -102,7 +103,7 @@ router.get("/view/:id", async (req, res) => {
 
 
 // Update status of application
-router.put("/:id/update", async (req, res) => {
+router.put("/:id/update", jwtAuth, async (req, res) => {
   try {
     const user = req.user;
     const id = req.params.id;

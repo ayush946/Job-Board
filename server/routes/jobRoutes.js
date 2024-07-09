@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const jwtAuth = require("../lib/jwtAuth");
 
 const Job = require("../models/Job");
@@ -22,9 +21,9 @@ router.post("/jobs", jwtAuth, async (req, res) => {
     if (data.skills && data.skills.length > 0) {
         try {
             for (let skillName of data.skills) {
-                let skill = await Skill.findOne({ skill: skillName });
+                let skill = await Skill.findOne({ name: skillName });
                 if (!skill) {
-                    skill = new Skill({ skill: skillName });
+                    skill = new Skill({ name: skillName });
                     await skill.save();
                 }
             }

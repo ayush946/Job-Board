@@ -71,8 +71,13 @@ let schema = new mongoose.Schema(
           message: "yearsOfExperienceReq should be positive",
         },
       ],
-    }
+    },
+    skills: [{
+      type: String,
+      required: true,
+    }],
   },
+  
   { collation: { locale: "en" } }
 );
 

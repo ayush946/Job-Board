@@ -14,8 +14,9 @@ app.use(express.json());
 const skillRoutes = require("./routes/skillRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 
-app.use('/api/skills', skillRoutes);
-app.use('/api/applications', applicationRoutes);
+app.use('/skills', skillRoutes);
+app.use('/applications', applicationRoutes);
+
 
 app.get('/', (req, res) => {
   // testing route
@@ -23,7 +24,7 @@ app.get('/', (req, res) => {
 });
 
 
-const uri = process.env.MONGODB_URI
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -33,17 +34,18 @@ const client = new MongoClient(uri, {
   }
 });
 
-async function run() {
+
+async function connectDB() {
   try {
     await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    await client.close();
+    console.log("Connected to MongoDB!");
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    process.exit(1);
   }
 }
-run().catch(console.dir);
+
+connectDB();
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

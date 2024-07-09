@@ -20,7 +20,7 @@ router.post("/new", async (req, res) => {
     const appliedApplication = await JobApplication.findOne({
       applicantId: applicant._id,
       jobId: jobId,
-      status: { $nin: ["Deleted"] },
+      status: { $nin: ["Deleted", "Withdrawn"] },
     });
 
     if (appliedApplication) {
@@ -114,11 +114,8 @@ router.put("/:id/update", async (req, res) => {
       return res.status(404).json({ message: "JobApplication not found" });
     }
 
-    // Handle different scenarios based on user type
-    if (user.type === "recruiter") {
-      await handleRecruiterActions(user, application, status, res);
-    } else if (user.type === "applicant") {
-      await handleApplicantActions(user, application, status, res);
+    if (user.type === "applicant") {
+      await handleApplicantActions(application, status, res);
     } else {
       return res.status(401).json({ message: "Unauthorized access" });
     }
@@ -128,27 +125,8 @@ router.put("/:id/update", async (req, res) => {
   }
 });
 
-// Function to handle recruiter actions
-async function handleRecruiterActions(user, application, status, res) {
-  try {
-    if (status === "Deleted") {
-      await JobApplication.updateMany(
-        { jobId: application.jobId, status: { $nin: ["Deleted"] } },
-        { $set: { status: "Deleted" } }
-      );
-
-      // Delete the job
-      await Job.deleteOne({ _id: application.jobId });
-
-      return res.json({ message: "Job and associated applications deleted successfully" });
-    }
-  } catch (err) {
-    throw err;
-  }
-}
-
 // Function to handle applicant actions
-async function handleApplicantActions(user, application, status, res) {
+async function handleApplicantActions(application, status, res) {
   try {
     if (status === "Withdrawn") {
       // Update application status to cancelled

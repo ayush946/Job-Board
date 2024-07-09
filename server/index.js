@@ -11,38 +11,36 @@ app.use(cors());
 
 app.use(express.json());
 
-const userRoutes = require('../routes/userRoutes');
-const applicationRoutes = require('../routes/applicationRoutes');
-const jobRoutes = require('../routes/jobRoutes');
-const companyRoutes = require('../routes/companyRoutes');
+const skillRoutes = require("./routes/skillRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
 
-app.use('/users', userRoutes);
+app.use('/skills', skillRoutes);
 app.use('/applications', applicationRoutes);
-app.use('/jobs', jobRoutes);
-app.use('/companies', companyRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
 });
 
-const db = mongoose.connection;
+async function connectDB() {
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB!");
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    process.exit(1);
+  }
+}
 
-db.on('connected', () => {
-  console.log('Connected to MongoDB');
-});
-
-db.on('error', (err) => {
-  console.log('MongoDB connection error:', err);
-});
-
-db.on('disconnected', () => {
-  console.log('MongoDB connection disconnected');
-});
+connectDB();
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

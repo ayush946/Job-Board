@@ -1,7 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const cors = require('cors');
-let port = 3001
+let port = 3001;
 
 require('dotenv').config();
 
@@ -17,11 +17,15 @@ const applicationRoutes = require("./routes/applicationRoutes");
 app.use('/skills', skillRoutes);
 app.use('/applications', applicationRoutes);
 
+
 app.get('/', (req, res) => {
+  // testing route
   res.send('Hello World!');
 });
 
+
 const uri = process.env.MONGODB_URI;
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -29,6 +33,7 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
 
 async function connectDB() {
   try {

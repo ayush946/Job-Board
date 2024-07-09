@@ -1,7 +1,6 @@
 const express = require("express");
 const ApplicantSkill = require("../models/ApplicantSkill");
 const JobSkill = require("../models/JobSkill");
-const Skill = require("../models/Skill");
 
 const router = express.Router();
 
@@ -39,9 +38,9 @@ router.get("/view/applicant/:applicantId", async (req, res) => {
 });
 
 // Remove a skill from an applicant
-router.delete("/delete/applicant/:skillId", async (req, res) => {
+router.delete("/delete/applicant/:id", async (req, res) => {
   try {
-    const applicantSkill = await ApplicantSkill.findByIdAndDelete(req.params.skillId);
+    const applicantSkill = await ApplicantSkill.findByIdAndDelete(req.params.id);
     if (!applicantSkill) {
       return res.status(404).json({ message: "Applicant skill not found" });
     }

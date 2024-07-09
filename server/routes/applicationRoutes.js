@@ -125,7 +125,6 @@ router.put("/:id/update", async (req, res) => {
   }
 });
 
-
 // Function to handle applicant actions
 async function handleApplicantActions(application, status, res) {
   try {

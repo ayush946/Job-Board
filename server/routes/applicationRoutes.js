@@ -2,6 +2,9 @@ const express = require("express");
 const jwtAuth = require("../lib/jwtAuth");
 
 const JobApplication = require("../models/JobApplication");
+const Applicant = require("../models/Applicant");
+const Job = require("../models/Job");
+const Recruiter = require("../models/Recruiter");
 
 const router = express.Router();
 
@@ -9,15 +12,30 @@ const router = express.Router();
 router.post("/new", jwtAuth, async (req, res) => {
   try {
     const user = req.user;
-    if (user.type !== "applicant") {
+    if (user.role !== "applicant") {
       return res.status(401).json({
         message: "You don't have permissions to apply for a job",
       });
     }
-    const jobId = req.params.id;
+    const jobId = req.body.jobId;
+
+    // Find the applicant based on userId
+    const applicant = await Applicant.findOne({ userId: user._id });
+    if (!applicant) {
+      return res.status(404).json({
+        message: "Applicant not found",
+      });
+    }
+
+    // Find the job based on jobId
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
+      });
+    }
 
     // Check if user has already applied
-    // todo: check if i should use user or applicant
     const appliedApplication = await JobApplication.findOne({
       applicantId: applicant._id,
       jobId: jobId,
@@ -31,9 +49,9 @@ router.post("/new", jwtAuth, async (req, res) => {
     }
 
      // Create new application
-     const application = new JobApplicationApplication({
-      userId: user._id,
-      recruiterId: job.userId,
+     const application = new JobApplication({
+      applicantId: applicant._id,
+      recruiterId: job.recruiterId,
       jobId: job._id,
       status: "Applied",
     });
@@ -51,47 +69,73 @@ router.post("/new", jwtAuth, async (req, res) => {
 
 // Get All Applications of a particular applicant (My jobs section)
 router.get("/all", jwtAuth, async (req, res) => {
-  try {
     const user = req.user;
-    const userType = user.type;
+    const userType = user.role;
     const userId = user._id;
 
     let query = {};
 
     if (userType === "recruiter") {
-      query.recruiterId = userId;
+      const rec = await Recruiter.findOne({ userId: userId })
+      query.recruiterId = rec._id;
     } else if (userType === "applicant") {
-      query.userId = userId;
+      const app = await Applicant.findOne({ userId: userId })
+      query.applicantId = app._id;
     }
 
-    const applications = await JobApplication.find(query)
-      .populate({
-        path: "userId",
-        model: "JobApplicant",
+    JobApplication.aggregate([
+      {
+        $lookup: {
+          from: "jobapplicantinfos",
+          localField: "userId",
+          foreignField: "userId",
+          as: "jobApplicant",
+        },
+      },
+      { $unwind: "$jobApplicant" },
+      {
+        $lookup: {
+          from: "jobs",
+          localField: "jobId",
+          foreignField: "_id",
+          as: "job",
+        },
+      },
+      { $unwind: "$job" },
+      {
+        $lookup: {
+          from: "recruiterinfos",
+          localField: "recruiterId",
+          foreignField: "userId",
+          as: "recruiter",
+        },
+      },
+      { $unwind: "$recruiter" },
+      {
+        $match: {
+          [user.type === "recruiter" ? "recruiterId" : "userId"]: user._id,
+        },
+      },
+      {
+        $sort: {
+          dateOfApplication: -1,
+        },
+      },
+    ])
+      .then((applications) => {
+        res.json(applications);
       })
-      .populate({
-        path: "jobId",
-        model: "Job",
-      })
-      .populate({
-        path: "recruiterId",
-        model: "Recruiter",
-      })
-      .sort({ dateOfApplication: -1 });
-
-    res.json(applications);
-  } catch (err) {
-    console.error("Error fetching applications:", err);
-    res.status(400).json({ message: "An error occurred" });
-  }
+      .catch((err) => {
+        res.status(400).json(err);
+      });
 });
 
 // View JobApplication by ID
 // todo: test
 router.get("/view/:id", jwtAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-    const application = await JobApplication.findById(id).populate('applicantId jobId');
+    const applicationId = req.params.id;
+    const application = await JobApplication.findById(applicationId).populate('applicantId jobId');
     if (!application) {
       return res.status(404).json({ message: "JobApplication not found" });
     }
@@ -103,19 +147,19 @@ router.get("/view/:id", jwtAuth, async (req, res) => {
 
 
 // Update status of application
-router.put("/:id/update", jwtAuth, async (req, res) => {
+router.put("/update/:id", jwtAuth, async (req, res) => {
   try {
     const user = req.user;
-    const id = req.params.id;
+    const applicationId = req.params.id;
     const status = req.body.status;
 
-    const application = await JobApplication.findOne({ _id: id }).populate("jobId");
+    const application = await JobApplication.findOne({ _id: applicationId }).populate("jobId");
 
     if (!application) {
       return res.status(404).json({ message: "JobApplication not found" });
     }
 
-    if (user.type === "applicant") {
+    if (user.role === "applicant") {
       await handleApplicantActions(application, status, res);
     } else {
       return res.status(401).json({ message: "Unauthorized access" });
@@ -130,7 +174,8 @@ router.put("/:id/update", jwtAuth, async (req, res) => {
 async function handleApplicantActions(application, status, res) {
   try {
     if (status === "Withdrawn") {
-      // Update application status to cancelled
+      // Update application status to withdrawn
+      
       await JobApplication.updateOne({ _id: application._id }, { $set: { status: "Withdrawn" } });
       return res.json({ message: "JobApplication Withdrawn successfully" });
     } else {

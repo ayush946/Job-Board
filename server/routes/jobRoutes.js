@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const jwtAuth = require("../lib/jwtAuth");
 
 const Job = require("../models/Job");
@@ -8,7 +7,7 @@ const Skill = require("../models/Skill");
 const router = express.Router();
 
 // Create a job
-router.post("/jobs", jwtAuth, async (req, res) => {
+router.post("/jobs/new", jwtAuth, async (req, res) => {
     const user = req.user;
     if (user.role !== "recruiter") {
         return res.status(401).json({
@@ -22,9 +21,9 @@ router.post("/jobs", jwtAuth, async (req, res) => {
     if (data.skills && data.skills.length > 0) {
         try {
             for (let skillName of data.skills) {
-                let skill = await Skill.findOne({ skill: skillName });
+                let skill = await Skill.findOne({ name: skillName });
                 if (!skill) {
-                    skill = new Skill({ skill: skillName });
+                    skill = new Skill({ name: skillName });
                     await skill.save();
                 }
             }
@@ -58,7 +57,7 @@ router.post("/jobs", jwtAuth, async (req, res) => {
 });
 
 // Get all jobs posted by the recruiter
-router.get("/jobs", jwtAuth, (req, res) => {
+router.get("/jobs/all", jwtAuth, (req, res) => {
     const user = req.user;
 
     if (user.role !== "recruiter") {
@@ -91,30 +90,37 @@ router.get("/jobs/:id", (req, res) => {
 });
 
 // Delete a job
-router.delete("/jobs/:id", jwtAuth, (req, res) => {
-    const user = req.user;
-    if (user.role !== "recruiter") {
-        return res.status(401).json({
-            message: "Permission to delete job denied"
-        });
-    }
-    Job.findOneAndDelete({
-        _id: req.params.id,
-        recruiterId: user._id,
-    })
-        .then((job) => {
-            if (!job) {
-                return res.status(401).json({
-                    message: "You don't have permissions to delete the job",
-                });
-            }
-            res.json({
-                message: "Job deleted successfully",
+router.delete("/jobs/:id", jwtAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        
+        if (user.role !== "recruiter") {
+            return res.status(401).json({
+                message: "Permission to delete job denied"
             });
-        })
-        .catch((err) => {
-            res.status(400).json(err);
+        }
+
+        const jobId = req.params.id;
+
+        // Find the job and ensure it belongs to the logged-in recruiter
+        const job = await Job.findOne({ _id: jobId, recruiterId: user._id });
+
+        if (!job) {
+            return res.status(404).json({
+                message: "Job not found",
+            });
+        }
+
+        // Update job status to "Deleted"
+        await Job.updateOne({ _id: jobId }, { $set: { status: "Deleted" } });
+
+        res.json({
+            message: "Job deleted successfully",
         });
+    } catch (error) {
+        console.error("Error deleting job:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 });
 
 // Update a job

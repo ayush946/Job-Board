@@ -47,9 +47,6 @@ router.post("/signup", async (req, res) => {
       type: user.role,
     });
   } catch (err) {
-    if (user._id) {
-      await User.findByIdAndDelete(user._id);
-    }
     res.status(400).json({ error: err.message });
   }
 });

@@ -54,6 +54,7 @@ function App() {
               <Route path="/applications" element={<Applications />} />
               <Route path="/logout" element={<Logout />} />
               <Route path="*" element={<ErrorPage />} />
+              {/* <Route path="/profile" element={<RecruiterProfile /> }/> */}
               <Route path="/profile" element={userType() === "recruiter" ? <RecruiterProfile /> : <Profile />} />
               <Route path="/addjobs" element={<CreateJobs />} />
               <Route path="/myjobs" element={<MyJobs />} />

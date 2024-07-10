@@ -1,15 +1,15 @@
-export const server = "";
+export const server = "http://localhost:3001";
 
 const apiList = {
   login: `${server}/auth/login`,
   signup: `${server}/auth/signup`,
   uploadResume: `${server}/upload/resume`,
   uploadProfileImage: `${server}/upload/profile`,
-  jobs: `${server}/api/jobs`,
-  applications: `${server}/api/applications`,
-  rating: `${server}/api/rating`,
-  user: `${server}/api/user`,
-  applicants: `${server}/api/applicants`,
+  jobs: `${server}/recruiter/jobs`,
+  applications: `${server}/applications`,
+  rating: `${server}/rating`,
+  user: `${server}/user`,
+  applicants: `${server}/applicants`,
 };
 
 export default apiList;

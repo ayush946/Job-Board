@@ -33,7 +33,7 @@ const MultifieldInput = ({ education, setEducation }) => (
   <>
     {education.map((obj, key) => (
       <Grid item container key={key} sx={{ paddingLeft: 0, paddingRight: 0 }}>
-        <Grid item xs={6}>
+        <Grid item xs={3}>
           <TextField
             label={`Institution Name #${key + 1}`}
             value={education[key].institutionName}
@@ -43,6 +43,18 @@ const MultifieldInput = ({ education, setEducation }) => (
               setEducation(newEdu);
             }}
             variant="outlined"
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <TextField
+            label="Degree"
+            value={obj.degree}
+            variant="outlined"
+            onChange={(event) => {
+              const newEdu = [...education];
+              newEdu[key].degree = event.target.value;
+              setEducation(newEdu);
+            }}
           />
         </Grid>
         <Grid item xs={3}>
@@ -82,6 +94,7 @@ const MultifieldInput = ({ education, setEducation }) => (
             ...education,
             {
               institutionName: "",
+              degree: "",
               startYear: "",
               endYear: "",
             },
@@ -108,8 +121,7 @@ const Login = () => {
     education: [],
     skills: [],
     resume: "",
-    profile: "",
-    bio: "",
+    companyName: "", // Changed from bio to companyName
     contactNumber: "",
   });
 
@@ -118,6 +130,7 @@ const Login = () => {
   const [education, setEducation] = useState([
     {
       institutionName: "",
+      degree: "",
       startYear: "",
       endYear: "",
     },
@@ -313,7 +326,7 @@ const Login = () => {
     <Body elevation={3}>
       <Grid container direction="column" spacing={4} alignItems="center">
         <Grid item>
-        <Typography variant="h3" component="h2">
+          <Typography variant="h3" component="h2">
             Signup
           </Typography>
         </Grid>
@@ -413,6 +426,13 @@ const Login = () => {
               />
             </Grid>
             <Grid item>
+              <PhoneInput
+                country={"in"}
+                value={phone}
+                onChange={(phone) => setPhone(phone)}
+              />
+            </Grid>
+            {/*<Grid item>
               <FileUploadInput
                 sx={{ width: "400px" }}
                 label="Profile Photo (.jpg/.png)"
@@ -421,27 +441,19 @@ const Login = () => {
                 handleInput={handleInput}
                 identifier={"profile"}
               />
-            </Grid>
+            </Grid>*/}
           </>
         ) : (
           <>
-            <Grid item sx={{ width: "100%" }}>
+            <Grid item>
               <TextField
-                label="Bio (up to 250 words)"
-                multiline
-                rows={8}
+                label="Company Name" // Changed from Bio to Company Name
+                value={signupDetails.companyName}
+                onChange={(event) => handleInput("companyName", event.target.value)}
+                sx={{ width: "400px" }}
+                error={inputErrorHandler.companyName?.error}
+                helperText={inputErrorHandler.companyName?.message}
                 variant="outlined"
-                value={signupDetails.bio}
-                onChange={(event) => {
-                  if (
-                    event.target.value.split(" ").filter(function (n) {
-                      return n !== "";
-                    }).length <= 250
-                  ) {
-                    handleInput("bio", event.target.value);
-                  }
-                }}
-                sx={{ width: "100%" }}
               />
             </Grid>
             <Grid item>

@@ -33,10 +33,12 @@ router.post("/signup", async (req, res) => {
           userId: user._id,
           location: data.location,
           resume: data.resume,
-          education: data.education,
-          degree: data.degree,
-          startYear: data.startYear,
-          endYear: data.endYear,
+          education: {
+            institution: data.institution,
+            degree: data.degree,
+            startYear: data.startYear,
+            endYear: data.endYear
+          }
         });
 
     await userDetails.save();

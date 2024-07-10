@@ -34,10 +34,12 @@ router.post("/signup", async (req, res) => {
           userId: user._id,
           location: data.location,
           resume: data.resume,
-          education: data.education,
-          degree: data.degree,
-          startYear: data.startYear,
-          endYear: data.endYear,
+          education: {
+            institution: data.institution,
+            degree: data.degree,
+            startYear: data.startYear,
+            endYear: data.endYear
+          }
         });
 
     await userDetails.save();
@@ -76,7 +78,6 @@ router.post("/login", (req, res, next) => {
     }
   )(req, res, next);
 });
-
 
 // get user's personal details
 router.get("/user", jwtAuth, (req, res) => {

@@ -53,19 +53,11 @@ const JobTile = (props) => {
   const { job } = props;
   const setPopup = useContext(SetPopupContext);
 
-  const [open, setOpen] = useState(false);
-  const [sop, setSop] = useState("");
-
-  const handleClose = () => {
-    setOpen(false);
-    setSop("");
-  };
-
   const handleApply = () => {
     axios
       .post(
-        `${apiList.jobs}/${job?._id}/applications`,
-        { sop: sop },
+        `${apiList.applications}/new`,
+        { jobId: job?._id },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -78,7 +70,6 @@ const JobTile = (props) => {
           severity: "success",
           message: response.data.message,
         });
-        handleClose();
       })
       .catch((err) => {
         setPopup({
@@ -86,7 +77,7 @@ const JobTile = (props) => {
           severity: "error",
           message: err.response.data.message,
         });
-        handleClose();
+
       });
   };
 
@@ -115,7 +106,7 @@ const JobTile = (props) => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => setOpen(true)}
+            onClick={handleApply}
             disabled={userType() === "recruiter"}
             style={{ width: "100%", height: "100%" }}
           >
@@ -123,34 +114,6 @@ const JobTile = (props) => {
           </Button>
         </Grid>
       </Grid>
-      <Modal open={open} onClose={handleClose}>
-        <StyledModalPaper>
-          <TextField
-            label="Write SOP (upto 250 words)"
-            multiline
-            rows={8}
-            fullWidth
-            variant="outlined"
-            value={sop}
-            onChange={(event) => {
-              if (
-                event.target.value.split(" ").filter((n) => n !== "").length <= 250
-              ) {
-                setSop(event.target.value);
-              }
-            }}
-            style={{ marginBottom: "30px" }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleApply}
-            style={{ padding: "10px 50px" }}
-          >
-            Submit
-          </Button>
-        </StyledModalPaper>
-      </Modal>
     </StyledPaper>
   );
 };

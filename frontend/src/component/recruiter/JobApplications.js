@@ -5,10 +5,8 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
-  makeStyles,
   Modal,
   Paper,
-  Slider,
   Typography,
   Avatar,
   Chip,
@@ -20,7 +18,6 @@ import axios from "axios";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-//import { makeStyles } from '@mui/styles';
 
 
 import { SetPopupContext } from "../../App";

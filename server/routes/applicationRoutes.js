@@ -69,65 +69,40 @@ router.post("/new", jwtAuth, async (req, res) => {
 
 // Get All Applications of a particular applicant (My jobs section)
 router.get("/all", jwtAuth, async (req, res) => {
+    
+  try {
     const user = req.user;
-    const userType = user.role;
     const userId = user._id;
 
-    let query = {};
+    const app = await Applicant.findOne({ userId: userId })  
 
-    if (userType === "recruiter") {
-      const rec = await Recruiter.findOne({ userId: userId })
-      query.recruiterId = rec._id;
-    } else if (userType === "applicant") {
-      const app = await Applicant.findOne({ userId: userId })
-      query.applicantId = app._id;
-    }
+    // const applications =  await JobApplication.find({ applicantId: app._id });
+    
+    applications = await JobApplication.find({ applicantId: app._id })
+    .populate('jobId')
+    .populate({
+      path: 'jobId',
+      populate: {
+        path: 'recruiterId',
+        model: 'Recruiter'
+      }
+    })
+    .populate('applicantId')
+    .populate({
+      path: 'applicantId',
+      populate: {
+        path: 'userId',
+        model: 'User',
+        select: 'name' 
+      }
+    });
+    
+    console.log(applications)
+    res.json(applications);
 
-    JobApplication.aggregate([
-      {
-        $lookup: {
-          from: "jobapplicantinfos",
-          localField: "userId",
-          foreignField: "userId",
-          as: "jobApplicant",
-        },
-      },
-      { $unwind: "$jobApplicant" },
-      {
-        $lookup: {
-          from: "jobs",
-          localField: "jobId",
-          foreignField: "_id",
-          as: "job",
-        },
-      },
-      { $unwind: "$job" },
-      {
-        $lookup: {
-          from: "recruiterinfos",
-          localField: "recruiterId",
-          foreignField: "userId",
-          as: "recruiter",
-        },
-      },
-      { $unwind: "$recruiter" },
-      {
-        $match: {
-          [user.type === "recruiter" ? "recruiterId" : "userId"]: user._id,
-        },
-      },
-      {
-        $sort: {
-          dateOfApplication: -1,
-        },
-      },
-    ])
-      .then((applications) => {
-        res.json(applications);
-      })
-      .catch((err) => {
+} catch(err) {
         res.status(400).json(err);
-      });
+    };
 });
 
 // View JobApplication by ID

@@ -12,7 +12,6 @@ import {
   Checkbox,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import Rating from "@mui/material/Rating";
 import Pagination from "@mui/material/Pagination";
 import axios from "axios";
 import FilterListIcon from "@mui/icons-material/FilterList";

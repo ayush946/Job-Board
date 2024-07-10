@@ -35,9 +35,9 @@ const Navbar = () => {
                 <Button color="inherit" onClick={() => handleClick("/myjobs")}>
                   My Jobs
                 </Button>
-                <Button color="inherit" onClick={() => handleClick("/profile")}>
+                {/* <Button color="inherit" onClick={() => handleClick("/profile")}>
                   Profile
-                </Button>
+                </Button> */}
                 <Button color="inherit" onClick={() => handleClick("/logout")}>
                   Logout
                 </Button>
@@ -53,9 +53,9 @@ const Navbar = () => {
                 >
                   Applications
                 </Button>
-                <Button color="inherit" onClick={() => handleClick("/profile")}>
+                {/* <Button color="inherit" onClick={() => handleClick("/profile")}>
                   Profile
-                </Button>
+                </Button> */}
                 <Button color="inherit" onClick={() => handleClick("/logout")}>
                   Logout
                 </Button>

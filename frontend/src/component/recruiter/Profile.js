@@ -3,7 +3,6 @@ import {
   Button,
   Grid,
   Typography,
-  Modal,
   Paper,
   TextField,
 } from "@mui/material";
@@ -34,7 +33,7 @@ const Profile = (props) => {
 
   const [profileDetails, setProfileDetails] = useState({
     name: "",
-    bio: "",
+    companyName: "",
     contactNumber: "",
   });
 
@@ -90,7 +89,7 @@ const Profile = (props) => {
     }
 
     axios
-      .put(apiList.user, updatedDetails, {
+      .put(apiList.user , updatedDetails, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -150,20 +149,14 @@ const Profile = (props) => {
               </Grid>
               <Grid item>
                 <TextField
-                  label="Bio (upto 250 words)"
+                  label="Company Name"
                   multiline
                   rows={8}
                   style={{ width: "100%" }}
                   variant="outlined"
-                  value={profileDetails.bio}
+                  value={profileDetails.companyName}
                   onChange={(event) => {
-                    if (
-                      event.target.value.split(" ").filter(function (n) {
-                        return n != "";
-                      }).length <= 250
-                    ) {
-                      handleInput("bio", event.target.value);
-                    }
+                    handleInput("companyName", event.target.value);
                   }}
                 />
               </Grid>

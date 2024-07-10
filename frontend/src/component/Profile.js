@@ -9,6 +9,8 @@ import {
     Chip,
 } from "@mui/material";
 import axios from "axios";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/material.css";
 import FileUploadInput from "../lib/FileUploadInput";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FaceIcon from "@mui/icons-material/Face";
@@ -56,6 +58,18 @@ const MultifieldInput = ({ education, setEducation }) => {
                     </Grid>
                     <Grid item xs={3}>
                         <TextField
+                            label="Degree"
+                            value={obj.degree}
+                            variant="outlined"
+                            onChange={(event) => {
+                                const newEdu = [...education];
+                                newEdu[key].degree = event.target.value;
+                                setEducation(newEdu);
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <TextField
                             label="Start Year"
                             value={obj.startYear}
                             variant="outlined"
@@ -91,6 +105,7 @@ const MultifieldInput = ({ education, setEducation }) => {
                             ...education,
                             {
                                 institutionName: "",
+                                degree: "",
                                 startYear: "",
                                 endYear: "",
                             },
@@ -115,11 +130,15 @@ const Profile = (props) => {
         skills: [],
         resume: "",
         profile: "",
+        contactNumber: "",
     });
+
+    const [phone, setPhone] = useState("");
 
     const [education, setEducation] = useState([
         {
             institutionName: "",
+            degree: "",
             startYear: "",
             endYear: "",
         },
@@ -146,10 +165,12 @@ const Profile = (props) => {
             .then((response) => {
                 console.log(response.data);
                 setProfileDetails(response.data);
+                setPhone(response.data.contactNumber);
                 if (response.data.education.length > 0) {
                     setEducation(
                         response.data.education.map((edu) => ({
                             institutionName: edu.institutionName ? edu.institutionName : "",
+                            degree: edu.degree ? edu.degree : "",
                             startYear: edu.startYear ? edu.startYear : "",
                             endYear: edu.endYear ? edu.endYear : "",
                         }))
@@ -188,6 +209,12 @@ const Profile = (props) => {
                     return obj;
                 }),
         };
+
+        if (phone !== "") {
+            updatedDetails.contactNumber = `+${phone}`;
+        } else {
+            updatedDetails.contactNumber = "";
+        }
 
         axios
             .put(apiList.user, updatedDetails, {
@@ -275,13 +302,18 @@ const Profile = (props) => {
                                     identifier={"resume"}
                                 />
                             </Grid>
-                            <Grid item>
-                                <FileUploadInput
-                                    label="Profile Photo (.jpg/.png)"
-                                    icon={<FaceIcon />}
-                                    uploadTo={apiList.uploadProfileImage}
-                                    handleInput={handleInput}
-                                    identifier={"profile"}
+                            <Grid
+                                item
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <PhoneInput
+                                    country={"in"}
+                                    value={phone}
+                                    onChange={(phone) => setPhone(phone)}
+                                    style={{ width: "auto" }}
                                 />
                             </Grid>
                         </Grid>

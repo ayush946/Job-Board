@@ -103,16 +103,7 @@ router.delete("/jobs/:id", jwtAuth, async (req, res) => {
         const jobId = req.params.id;
 
         // Find the job and ensure it belongs to the logged-in recruiter
-        const job = await Job.findOne({ _id: jobId, recruiterId: user._id });
-
-        if (!job) {
-            return res.status(404).json({
-                message: "Job not found",
-            });
-        }
-
-        // Update job status to "Deleted"
-        await Job.updateOne({ _id: jobId }, { $set: { status: "Deleted" } });
+        const job = await Job.findOneAndDelete({ _id: jobId, recruiterId: user._id });
 
         res.json({
             message: "Job deleted successfully",

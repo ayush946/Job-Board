@@ -29,15 +29,12 @@ const CreateJobs = (props) => {
 
   const [jobDetails, setJobDetails] = useState({
     title: "",
-    maxApplicants: 100,
-    maxPositions: 30,
-    deadline: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .substr(0, 16),
-    skillsets: [],
-    jobType: "Full Time",
-    duration: 0,
+    maxOpenPositions: 30,
+    skills: [],
+    jobType: "Full time",
+    location: "Remote",
     salary: 0,
+    yearsOfExperienceReq: 0,
   });
 
   const handleInput = (key, value) => {
@@ -50,7 +47,7 @@ const CreateJobs = (props) => {
   const handleUpdate = () => {
     console.log(jobDetails);
     axios
-      .post(apiList.jobs, jobDetails, {
+      .post(apiList.jobs + "/new", jobDetails, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -63,22 +60,19 @@ const CreateJobs = (props) => {
         });
         setJobDetails({
           title: "",
-          maxApplicants: 100,
-          maxPositions: 30,
-          deadline: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .substr(0, 16),
-          skillsets: [],
-          jobType: "Full Time",
-          duration: 0,
+          maxOpenPositions: 30,
+          skills: [],
+          jobType: "Full time",
+          location: "Remote",
           salary: 0,
+          yearsOfExperienceReq: 0,
         });
       })
       .catch((err) => {
         setPopup({
           open: true,
           severity: "error",
-          message: err.response.data.message,
+          message: err.response,
         });
         console.log(err.response);
       });
@@ -115,11 +109,11 @@ const CreateJobs = (props) => {
                   multiple
                   freeSolo
                   options={[]}
-                  value={jobDetails.skillsets}
+                  value={jobDetails.skills}
                   onChange={(event, newValue) => {
                     setJobDetails({
                       ...jobDetails,
-                      skillsets: newValue,
+                      skills: newValue,
                     });
                   }}
                   renderInput={(params) => (
@@ -152,29 +146,25 @@ const CreateJobs = (props) => {
                   }}
                   fullWidth
                 >
-                  <MenuItem value="Full Time">Full Time</MenuItem>
-                  <MenuItem value="Part Time">Part Time</MenuItem>
-                  <MenuItem value="Work From Home">Work From Home</MenuItem>
+                  <MenuItem value="Full time">Full time</MenuItem>
+                  <MenuItem value="Internship">Internship</MenuItem>
+                  <MenuItem value="Part-time">Part-time</MenuItem>
                 </TextField>
               </Grid>
               <Grid item>
                 <TextField
                   select
-                  label="Duration"
+                  label="Location"
                   variant="outlined"
-                  value={jobDetails.duration}
+                  value={jobDetails.location}
                   onChange={(event) => {
-                    handleInput("duration", event.target.value);
+                    handleInput("location", event.target.value);
                   }}
                   fullWidth
                 >
-                  <MenuItem value={0}>Flexible</MenuItem>
-                  <MenuItem value={1}>1 Month</MenuItem>
-                  <MenuItem value={2}>2 Months</MenuItem>
-                  <MenuItem value={3}>3 Months</MenuItem>
-                  <MenuItem value={4}>4 Months</MenuItem>
-                  <MenuItem value={5}>5 Months</MenuItem>
-                  <MenuItem value={6}>6 Months</MenuItem>
+                  <MenuItem value="Remote">Remote</MenuItem>
+                  <MenuItem value="On-site">On-site</MenuItem>
+                  <MenuItem value="Hybrid">Hybrid</MenuItem>
                 </TextField>
               </Grid>
               <Grid item>
@@ -192,29 +182,14 @@ const CreateJobs = (props) => {
               </Grid>
               <Grid item>
                 <TextField
-                  label="Application Deadline"
-                  type="datetime-local"
-                  value={jobDetails.deadline}
-                  onChange={(event) => {
-                    handleInput("deadline", event.target.value);
-                  }}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  variant="outlined"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Maximum Number Of Applicants"
+                  label="Years of Experience Required"
                   type="number"
                   variant="outlined"
-                  value={jobDetails.maxApplicants}
+                  value={jobDetails.yearsOfExperienceReq}
                   onChange={(event) => {
-                    handleInput("maxApplicants", event.target.value);
+                    handleInput("yearsOfExperienceReq", event.target.value);
                   }}
-                  InputProps={{ inputProps: { min: 1 } }}
+                  InputProps={{ inputProps: { min: 0 } }}
                   fullWidth
                 />
               </Grid>
@@ -223,9 +198,9 @@ const CreateJobs = (props) => {
                   label="Positions Available"
                   type="number"
                   variant="outlined"
-                  value={jobDetails.maxPositions}
+                  value={jobDetails.maxOpenPositions}
                   onChange={(event) => {
-                    handleInput("maxPositions", event.target.value);
+                    handleInput("maxOpenPositions", event.target.value);
                   }}
                   InputProps={{ inputProps: { min: 1 } }}
                   fullWidth

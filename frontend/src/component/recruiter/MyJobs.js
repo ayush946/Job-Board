@@ -3,26 +3,19 @@ import {
   Button,
   Chip,
   Grid,
-  IconButton,
-  InputAdornment,
   Paper,
   TextField,
   Typography,
   Modal,
-  Slider,
   FormControlLabel,
   FormGroup,
-  MenuItem,
   Checkbox,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Rating from "@mui/material/Rating";
 import Pagination from "@mui/material/Pagination";
 import axios from "axios";
-import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 import { SetPopupContext } from "../../App";
 import apiList from "../../lib/apiList";
@@ -88,7 +81,7 @@ const JobTile = (props) => {
 
   const handleDelete = () => {
     axios
-      .delete(`${apiList.jobs}/${job._id}`, {
+      .delete(`${apiList.jobs}/${job?._id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -114,7 +107,7 @@ const JobTile = (props) => {
 
   const handleJobUpdate = () => {
     axios
-      .put(`${apiList.jobs}/${job._id}`, jobDetails, {
+      .put(`${apiList.jobs}/${job?._id}`, jobDetails, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -138,48 +131,28 @@ const JobTile = (props) => {
       });
   };
 
-  const postedOn = new Date(job.dateOfPosting);
+  const postedOn = new Date(job?.dateOfPosting);
 
   return (
     <Paper sx={classes.jobTileOuter} elevation={3}>
       <Grid container>
-        <Grid container item xs={9} spacing={1} direction="column">
+        <Grid container item xs={8} spacing={2} direction="column">
           <Grid item>
-            <Typography variant="h5">{job.title}</Typography>
+            <Typography variant="h5">{job?.title}</Typography>
           </Grid>
+          <Grid item>Job Type : {job?.jobType}</Grid>
+          <Grid item>Salary : {job?.salary}</Grid>
+          <Grid item>Open Positions : {job?.maxOpenPositions}</Grid>
+          <Grid item>Years of Experience Required : {job?.yearsOfExperienceReq}</Grid>
+          <Grid item>Location : {job?.location}</Grid>
           <Grid item>
-            <Rating value={job.rating !== -1 ? job.rating : null} readOnly />
-          </Grid>
-          <Grid item>Role : {job.jobType}</Grid>
-          <Grid item>Salary : &#8377; {job.salary} per month</Grid>
-          <Grid item>
-            Duration :{" "}
-            {job.duration !== 0 ? `${job.duration} month` : `Flexible`}
-          </Grid>
-          <Grid item>Date Of Posting: {postedOn.toLocaleDateString()}</Grid>
-          <Grid item>Number of Applicants: {job.maxApplicants}</Grid>
-          <Grid item>
-            Remaining Number of Positions:{" "}
-            {job.maxPositions - job.acceptedCandidates}
-          </Grid>
-          <Grid item>
-            {job.skillsets.map((skill) => (
+            Skills : {job?.skills.map((skill) => (
               <Chip key={skill} label={skill} sx={{ marginRight: "2px" }} />
             ))}
           </Grid>
         </Grid>
-        <Grid item container direction="column" xs={3}>
-          <Grid item xs>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={classes.statusBlock}
-              onClick={() => handleClick(`/job/applications/${job._id}`)}
-            >
-              View Applications
-            </Button>
-          </Grid>
-          <Grid item>
+        <Grid item container direction="column" xs={3} spacing={1}>
+          <Grid item >
             <Button
               variant="contained"
               sx={{ ...classes.statusBlock, background: "#FC7A1E", color: "#fff" }}
@@ -244,7 +217,7 @@ const JobTile = (props) => {
         </Paper>
       </Modal>
       <Modal open={openUpdate} onClose={handleCloseUpdate} sx={classes.popupDialog}>
-        <Paper
+         <Paper
           sx={{
             padding: "20px",
             outline: "none",
@@ -252,44 +225,36 @@ const JobTile = (props) => {
             flexDirection: "column",
             justifyContent: "center",
             minWidth: "30%",
+            paddingRight: "80px",
             alignItems: "center",
           }}
         >
           <Typography variant="h4" sx={{ marginBottom: "10px" }}>
             Update Details
           </Typography>
-          <Grid container direction="column" spacing={3} sx={{ margin: "10px" }}>
-            <Grid item>
-              <TextField
-                label="Application Deadline"
-                type="datetime-local"
-                value={jobDetails.deadline.substr(0, 16)}
-                onChange={(event) => handleInput("deadline", event.target.value)}
-                InputLabelProps={{ shrink: true }}
-                variant="outlined"
-                fullWidth
-              />
-            </Grid>
+          <Grid container direction="column" spacing={5} sx={{ margin: "10px" }}>
             <Grid item>
               <TextField
                 label="Maximum Number Of Applicants"
                 type="number"
                 variant="outlined"
-                value={jobDetails.maxApplicants}
-                onChange={(event) => handleInput("maxApplicants", event.target.value)}
+                value={jobDetails.maxOpenPositions}
+                onChange={(event) => handleInput("maxOpenPositions", event.target.value)}
                 InputProps={{ inputProps: { min: 1 } }}
                 fullWidth
+                sx={{ paddingBottom: "10px"}}
               />
             </Grid>
             <Grid item>
               <TextField
-                label="Positions Available"
+                label="Salary"
                 type="number"
                 variant="outlined"
-                value={jobDetails.maxPositions}
-                onChange={(event) => handleInput("maxPositions", event.target.value)}
+                value={jobDetails.salary}
+                onChange={(event) => handleInput("salary", event.target.value)}
                 InputProps={{ inputProps: { min: 1 } }}
                 fullWidth
+                sx={{ paddingBottom: "40px"}}
               />
             </Grid>
           </Grid>
@@ -298,7 +263,7 @@ const JobTile = (props) => {
               <Button
                 variant="contained"
                 color="secondary"
-                sx={{ padding: "10px 50px" }}
+                sx={{ padding: "10px 50px", marginLeft: "30px" }}
                 onClick={() => handleJobUpdate()}
               >
                 Update
@@ -322,225 +287,232 @@ const JobTile = (props) => {
 };
 
 const FilterPopup = (props) => {
-    const classes = useStyles();
-    const { open, setOpen, applyFilters, filters, setFilters } = props;
-  
-    const handleClose = () => {
-      setOpen(false);
-    };
-  
-    const handleApplyFilters = () => {
-      applyFilters(filters);
-      handleClose();
-    };
-  
-    const handleFilterChange = (event) => {
-      setFilters({
-        ...filters,
-        [event.target.name]: event.target.value,
-      });
-    };
-  
-    const handleCheckboxChange = (event) => {
-      setFilters({
-        ...filters,
-        [event.target.name]: event.target.checked,
-      });
-    };
-  
-    return (
-      <Modal open={open} onClose={handleClose} sx={classes.popupDialog}>
-        <Paper
-          sx={{
-            padding: "20px",
-            outline: "none",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            minWidth: "30%",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h4" sx={{ marginBottom: "10px" }}>
-            Filter Jobs
-          </Typography>
-          <Grid container direction="column" spacing={3} sx={{ margin: "10px" }}>
-            <Grid item>
-              <TextField
-                label="Job Title"
-                name="title"
-                variant="outlined"
-                value={filters.title}
-                onChange={handleFilterChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Company"
-                name="company"
-                variant="outlined"
-                value={filters.company}
-                onChange={handleFilterChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Location"
-                name="location"
-                variant="outlined"
-                value={filters.location}
-                onChange={handleFilterChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Min Salary"
-                name="minSalary"
-                type="number"
-                variant="outlined"
-                value={filters.minSalary}
-                onChange={handleFilterChange}
-                InputProps={{ inputProps: { min: 0 } }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Max Salary"
-                name="maxSalary"
-                type="number"
-                variant="outlined"
-                value={filters.maxSalary}
-                onChange={handleFilterChange}
-                InputProps={{ inputProps: { min: 0 } }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={filters.fullTime}
-                      onChange={handleCheckboxChange}
-                      name="fullTime"
-                    />
-                  }
-                  label="Full Time"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={filters.partTime}
-                      onChange={handleCheckboxChange}
-                      name="partTime"
-                    />
-                  }
-                  label="Part Time"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={filters.internship}
-                      onChange={handleCheckboxChange}
-                      name="internship"
-                    />
-                  }
-                  label="Internship"
-                />
-              </FormGroup>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="secondary"
-                sx={{ padding: "10px 50px" }}
-                onClick={handleApplyFilters}
-              >
-                Apply Filters
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ padding: "10px 50px", marginLeft: "10px" }}
-                onClick={handleClose}
-              >
-                Cancel
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      </Modal>
-    );
+  const classes = useStyles();
+  const { open, setOpen, applyFilters, filters, setFilters } = props;
+
+  const handleClose = () => {
+    setOpen(false);
   };
-  
-  const MyJobs = (props) => {
-    const [jobs, setJobs] = useState([]);
-    const [filters, setFilters] = useState({
-      title: "",
-      company: "",
-      location: "",
-      minSalary: "",
-      maxSalary: "",
-      fullTime: false,
-      partTime: false,
-      internship: false,
+
+  const handleApplyFilters = () => {
+    applyFilters(filters);
+    handleClose();
+  };
+
+  const handleFilterChange = (event) => {
+    setFilters({
+      ...filters,
+      [event.target.name]: event.target.value,
     });
-    const [filterPopupOpen, setFilterPopupOpen] = useState(false);
-  
-    useEffect(() => {
-      fetchJobs();
-    }, []);
-  
-    const fetchJobs = async () => {
-      try {
-        const response = await axios.get(apiList.jobs, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          params: filters,
-        });
-        setJobs(response.data);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-      }
-    };
-  
-    const applyFilters = (filters) => {
-      setFilters(filters);
-      fetchJobs();
-    };
-  
-    return (
-      <>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<FilterListIcon />}
-          onClick={() => setFilterPopupOpen(true)}
-        >
-          Filter
-        </Button>
-        <FilterPopup
-          open={filterPopupOpen}
-          setOpen={setFilterPopupOpen}
-          applyFilters={applyFilters}
-          filters={filters}
-          setFilters={setFilters}
-        />
-        <Grid container spacing={2}>
-          {jobs.map((job) => (
-            <Grid item xs={12} sm={6} md={4} key={job._id}>
-              <JobTile job={job} getData={fetchJobs} />
-            </Grid>
-          ))}
-        </Grid>
-      </>
-    );
   };
-  
-  export default MyJobs;
-  
+
+  const handleCheckboxChange = (event) => {
+    setFilters({
+      ...filters,
+      [event.target.name]: event.target.checked,
+    });
+  };
+
+  return (
+    <Modal open={open} onClose={handleClose} sx={classes.popupDialog}>
+      <Paper
+        sx={{
+          padding: "20px",
+          outline: "none",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          minWidth: "30%",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h4" sx={{ marginBottom: "10px" }}>
+          Filter Jobs
+        </Typography>
+        <Grid container direction="column" spacing={3} sx={{ margin: "10px" }}>
+          <Grid item>
+            <TextField
+              label="Job Title"
+              name="title"
+              variant="outlined"
+              value={filters.title}
+              onChange={handleFilterChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Location"
+              name="location"
+              variant="outlined"
+              value={filters.location}
+              onChange={handleFilterChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Min Salary"
+              name="minSalary"
+              type="number"
+              variant="outlined"
+              value={filters.minSalary}
+              onChange={handleFilterChange}
+              InputProps={{ inputProps: { min: 0 } }}
+              fullWidth
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Max Salary"
+              name="maxSalary"
+              type="number"
+              variant="outlined"
+              value={filters.maxSalary}
+              onChange={handleFilterChange}
+              InputProps={{ inputProps: { min: 0 } }}
+              fullWidth
+            />
+          </Grid>
+          <Grid item>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.fullTime}
+                    onChange={handleCheckboxChange}
+                    name="fullTime"
+                  />
+                }
+                label="Full Time"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.partTime}
+                    onChange={handleCheckboxChange}
+                    name="partTime"
+                  />
+                }
+                label="Part Time"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.internship}
+                    onChange={handleCheckboxChange}
+                    name="internship"
+                  />
+                }
+                label="Internship"
+              />
+            </FormGroup>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="secondary"
+              sx={{ padding: "10px 50px" }}
+              onClick={handleApplyFilters}
+            >
+              Apply Filters
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{ padding: "10px 50px", marginLeft: "10px" }}
+              onClick={handleClose}
+            >
+              Cancel
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Modal>
+  );
+};
+
+const MyJobs = (props) => {
+  const [jobs, setJobs] = useState([]);
+  const [filters, setFilters] = useState({
+    title: "",
+    location: "",
+    minSalary: "",
+    maxSalary: "",
+    fullTime: false,
+    partTime: false,
+    internship: false,
+    yearsOfExperienceReq: 0
+
+  });
+  const [filterPopupOpen, setFilterPopupOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [currentPage, filters]);
+
+  const fetchJobs = async () => {
+    try {
+      const response = await axios.get(apiList.jobs + "/all", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        params: {
+          ...filters,
+          page: currentPage,
+        },
+      });
+      setJobs(response.data);
+      setTotalPages(response.data.totalPages);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  const applyFilters = (filters) => {
+    setFilters(filters);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  return (
+    <>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<FilterListIcon />}
+        onClick={() => setFilterPopupOpen(true)}
+      >
+        Filter
+      </Button>
+      <FilterPopup
+        open={filterPopupOpen}
+        setOpen={setFilterPopupOpen}
+        applyFilters={applyFilters}
+        filters={filters}
+        setFilters={setFilters}
+      />
+      <Grid container spacing={2}>
+        {jobs?.map((job) => (
+          <Grid item xs={12} sm={6} md={4} key={job?._id}>
+            <JobTile job={job} getData={fetchJobs} />
+          </Grid>
+        ))}
+      </Grid>
+      <Pagination
+        count={totalPages}
+        page={currentPage}
+        onChange={handlePageChange}
+        color="primary"
+        sx={{ marginTop: "20px", alignSelf: "center" }}
+      />
+    </>
+  );
+};
+
+export default MyJobs;

@@ -26,6 +26,7 @@ app.use('/recruiter', jobRoutes);
 app.use('/auth', userRoutes);
 app.use('/upload', uploadRoutes);
 
+
 app.get('/', (req, res) => {
   // testing route
   res.send('Hello World!');

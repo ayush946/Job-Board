@@ -3,6 +3,7 @@ const jwtAuth = require("../lib/jwtAuth");
 
 const Job = require("../models/Job");
 const Skill = require("../models/Skill");
+const sendJobApplicationConfirmation = require('../lib/email');
 
 const router = express.Router();
 
@@ -49,6 +50,7 @@ router.post("/jobs/new", jwtAuth, async (req, res) => {
 
     job.save()
         .then(() => {
+           
             res.json({ message: "Job added successfully" });
         })
         .catch((err) => {

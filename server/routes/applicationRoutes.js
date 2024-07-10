@@ -4,7 +4,7 @@ const jwtAuth = require("../lib/jwtAuth");
 const JobApplication = require("../models/JobApplication");
 const Applicant = require("../models/Applicant");
 const Job = require("../models/Job");
-const Recruiter = require("../models/Recruiter");
+const sendJobApplicationConfirmation = require('../lib/email');
 
 const router = express.Router();
 
@@ -58,6 +58,7 @@ router.post("/new", jwtAuth, async (req, res) => {
 
     await application.save();
 
+    sendJobApplicationConfirmation(user, job)
     return res.json({
       message: "Job application successful",
     });

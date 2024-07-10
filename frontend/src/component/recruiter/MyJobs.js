@@ -130,19 +130,17 @@ const JobTile = (props) => {
       });
   };
 
-  const postedOn = new Date(job?.dateOfPosting);
-
   return (
-    <Paper sx={classes.jobTileOuter} elevation={3}>
+    <Paper sx={classes.jobTileOuter} elevation={4}>
       <Grid container>
-        <Grid container item xs={8} spacing={2} direction="column">
+        <Grid container item xs={8} spacing={2} direction="column" >
           <Grid item>
             <Typography variant="h5">{job?.title}</Typography>
           </Grid>
           <Grid item>Job Type : {job?.jobType}</Grid>
           <Grid item>Salary : {job?.salary}</Grid>
           <Grid item>Open Positions : {job?.maxOpenPositions}</Grid>
-          <Grid item>Years of Experience Required : {job?.yearsOfExperienceReq}</Grid>
+          {/* <Grid item>YOE : {job?.yearsOfExperienceReq}</Grid> */}
           <Grid item>Location : {job?.location}</Grid>
           <Grid item>
             Skills : {job?.skills.map((skill) => (
@@ -481,22 +479,22 @@ const MyJobs = (props) => {
 
   return (
     <>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         startIcon={<FilterListIcon />}
         onClick={() => setFilterPopupOpen(true)}
       >
         Filter
-      </Button>
-      <FilterPopup
+      </Button> */}
+      {/* <FilterPopup
         open={filterPopupOpen}
         setOpen={setFilterPopupOpen}
         applyFilters={applyFilters}
         filters={filters}
         setFilters={setFilters}
-      />
-      <Grid container spacing={2}>
+      /> */}
+      <Grid container spacing={4} sx={{ padding: "40px"}}>
         {jobs?.map((job) => (
           <Grid item xs={12} sm={6} md={4} key={job?._id}>
             <JobTile job={job} getData={fetchJobs} />

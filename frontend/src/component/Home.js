@@ -11,9 +11,9 @@ import {
   Modal,
   Slider,
   FormControlLabel,
-  FormGroup,
   MenuItem,
   Checkbox,
+  CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -122,8 +122,8 @@ const FilterPopup = (props) => {
   const { open, handleClose, searchOptions, setSearchOptions, getData } = props;
 
   const handleApplyFilters = () => {
-    getData(); // Fetch data with updated filters
-    handleClose(); // Close the filter modal
+    getData();
+    handleClose();
   };
 
   return (
@@ -180,8 +180,8 @@ const FilterPopup = (props) => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      name="wfh"
-                      checked={searchOptions.jobType.wfh}
+                      name="internship"
+                      checked={searchOptions.jobType.internship}
                       onChange={(event) => {
                         setSearchOptions({
                           ...searchOptions,
@@ -193,7 +193,7 @@ const FilterPopup = (props) => {
                       }}
                     />
                   }
-                  label="Work From Home"
+                  label="Internship"
                 />
               </Grid>
             </Grid>
@@ -336,13 +336,15 @@ const FilterPopup = (props) => {
 
 const Home = () => {
   const [jobs, setJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchOptions, setSearchOptions] = useState({
     query: "",
     jobType: {
       fullTime: false,
       partTime: false,
-      wfh: false,
+      internship: false,
     },
     salary: [0, 100],
     location: "",
@@ -361,65 +363,17 @@ const Home = () => {
   }, []);
 
   const getData = () => {
-    let searchParams = [];
-    if (searchOptions.query !== "") {
-      searchParams = [...searchParams, `q=${searchOptions.query}`];
-    }
-    if (searchOptions.jobType.fullTime) {
-      searchParams = [...searchParams, `jobType=Full%20Time`];
-    }
-    if (searchOptions.jobType.partTime) {
-      searchParams = [...searchParams, `jobType=Part%20Time`];
-    }
-    if (searchOptions.jobType.wfh) {
-      searchParams = [...searchParams, `jobType=Work%20From%20Home`];
-    }
-    if (searchOptions.salary[0] !== 0) {
-      searchParams = [
-        ...searchParams,
-        `salaryMin=${searchOptions.salary[0] * 1000}`,
-      ];
-    }
-    if (searchOptions.salary[1] !== 100) {
-      searchParams = [
-        ...searchParams,
-        `salaryMax=${searchOptions.salary[1] * 1000}`,
-      ];
-    }
-    if (searchOptions.location !== "") {
-      searchParams = [...searchParams, `location=${searchOptions.location}`];
-    }
-
-    let asc = [],
-      desc = [];
-
-    Object.keys(searchOptions.sort).forEach((obj) => {
-      const item = searchOptions.sort[obj];
-      if (item.status) {
-        if (item.desc) {
-          desc = [...desc, `desc=${obj}`];
-        } else {
-          asc = [...asc, `asc=${obj}`];
-        }
-      }
-    });
-    searchParams = [...searchParams, ...asc, ...desc];
-    const queryString = searchParams.join("&");
-    console.log(queryString);
-    let address = apiList.jobs + "/posted";
-    if (queryString !== "") {
-      address = `${address}?${queryString}`;
-    }
-
+    setLoading(true);
     axios
-      .get(address, {
+      .get(apiList.jobs + "/posted", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
       .then((response) => {
-        console.log(response.data);
         setJobs(response.data);
+        setFilteredJobs(response.data);
+        setLoading(false);
       })
       .catch((err) => {
         console.log(err.response.data);
@@ -428,8 +382,54 @@ const Home = () => {
           severity: "error",
           message: "Error fetching jobs",
         });
+        setLoading(false);
       });
   };
+
+  const filterJobs = () => {
+    let filtered = [...jobs];
+
+    // Apply search query
+    if (searchOptions.query) {
+      filtered = filtered.filter(job => 
+        job.title.toLowerCase().includes(searchOptions.query.toLowerCase()) ||
+        job.jobType.toLowerCase().includes(searchOptions.query.toLowerCase())
+      );
+    }
+
+    // Apply job type filter
+    const selectedJobTypes = Object.entries(searchOptions.jobType)
+      .filter(([_, value]) => value)
+      .map(([key, _]) => key === 'internship' ? 'Internship' : key === 'fullTime' ? 'Full time' : 'Part-time');
+
+    if (selectedJobTypes.length > 0) {
+      filtered = filtered.filter(job => selectedJobTypes.includes(job.jobType));
+    }
+
+    // Apply salary filter
+    filtered = filtered.filter(job => 
+      job.salary >= searchOptions.salary[0] * 1000 && 
+      job.salary <= searchOptions.salary[1] * 1000
+    );
+
+    // Apply location filter
+    if (searchOptions.location) {
+      filtered = filtered.filter(job => job.location === searchOptions.location);
+    }
+
+    // Apply sorting
+    if (searchOptions.sort.salary.status) {
+      filtered.sort((a, b) => 
+        searchOptions.sort.salary.desc ? b.salary - a.salary : a.salary - b.salary
+      );
+    }
+
+    setFilteredJobs(filtered);
+  };
+
+  useEffect(() => {
+    filterJobs();
+  }, [searchOptions, jobs]);
 
   return (
     <>
@@ -460,15 +460,10 @@ const Home = () => {
                   query: event.target.value,
                 })
               }
-              onKeyPress={(ev) => {
-                if (ev.key === "Enter") {
-                  getData();
-                }
-              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment>
-                    <IconButton onClick={() => getData()}>
+                    <IconButton onClick={filterJobs}>
                       <SearchIcon />
                     </IconButton>
                   </InputAdornment>
@@ -479,7 +474,7 @@ const Home = () => {
             />
           </Grid>
           <Grid item>
-          <IconButton onClick={() => setFilterOpen(true)}>
+            <IconButton onClick={() => setFilterOpen(true)}>
               <FilterListIcon />
             </IconButton>
           </Grid>
@@ -493,8 +488,10 @@ const Home = () => {
           alignItems="stretch"
           justifyContent="center"
         >
-          {jobs.length > 0 ? (
-            jobs.map((job) => (
+          {loading ? (
+            <CircularProgress />
+          ) : filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => (
               <JobTile job={job} key={job?._id} />
             ))
           ) : (
@@ -509,10 +506,7 @@ const Home = () => {
         searchOptions={searchOptions}
         setSearchOptions={setSearchOptions}
         handleClose={() => setFilterOpen(false)}
-        getData={() => {
-          getData();
-          setFilterOpen(false);
-        }}
+        getData={filterJobs}
       />
     </>
   );

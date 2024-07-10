@@ -75,6 +75,24 @@ router.get("/jobs/all", jwtAuth, (req, res) => {
         });
 });
 
+router.get("/jobs/posted", jwtAuth, (req, res) => {
+    const user = req.user;
+
+    if (user.role !== "applicant") {
+        return res.status(401).json({
+            message: "Permission denied"
+        });
+    }
+
+    Job.find()
+        .then((jobs) => {
+            res.json(jobs);
+        })
+        .catch((err) => {
+            res.status(400).json(err);
+        });
+});
+
 // Get a job by ID
 router.get("/jobs/:id", (req, res) => {
     Job.findById(req.params.id)

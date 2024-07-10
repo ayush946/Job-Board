@@ -114,7 +114,7 @@ const Login = () => {
   const [loggedin, setLoggedin] = useState(isAuth());
 
   const [signupDetails, setSignupDetails] = useState({
-    type: "applicant",
+    role: "applicant",
     email: "",
     password: "",
     name: "",
@@ -122,7 +122,7 @@ const Login = () => {
     skills: [],
     resume: "",
     companyName: "", // Changed from bio to companyName
-    contactNumber: "",
+    contact: "",
   });
 
   const [phone, setPhone] = useState("");
@@ -260,12 +260,12 @@ const Login = () => {
     if (phone !== "") {
       updatedDetails = {
         ...signupDetails,
-        contactNumber: `+${phone}`,
+        contact: `+${phone}`,
       };
     } else {
       updatedDetails = {
         ...signupDetails,
-        contactNumber: "",
+        contact: "",
       };
     }
 
@@ -336,7 +336,7 @@ const Login = () => {
             label="Category"
             variant="outlined"
             sx={{ width: "400px" }}
-            value={signupDetails.type}
+            value={signupDetails.role}
             onChange={(event) => {
               handleInput("type", event.target.value);
             }}
@@ -391,7 +391,7 @@ const Login = () => {
             }}
           />
         </Grid>
-        {signupDetails.type === "applicant" ? (
+        {signupDetails.role === "applicant" ? (
           <>
             <MultifieldInput
               education={education}
@@ -420,6 +420,7 @@ const Login = () => {
                 sx={{ width: "400px" }}
                 label="Resume (.pdf)"
                 icon={<DescriptionIcon />}
+                onChange={(event) => handleInput("resume", event.target.value)}
                 uploadTo={apiList.uploadResume}
                 handleInput={handleInput}
                 identifier={"resume"}
@@ -432,16 +433,6 @@ const Login = () => {
                 onChange={(phone) => setPhone(phone)}
               />
             </Grid>
-            {/*<Grid item>
-              <FileUploadInput
-                sx={{ width: "400px" }}
-                label="Profile Photo (.jpg/.png)"
-                icon={<FaceIcon />}
-                uploadTo={apiList.uploadProfileImage}
-                handleInput={handleInput}
-                identifier={"profile"}
-              />
-            </Grid>*/}
           </>
         ) : (
           <>
@@ -471,7 +462,7 @@ const Login = () => {
             variant="contained"
             color="primary"
             onClick={() => {
-              signupDetails.type === "applicant"
+              signupDetails.role === "applicant"
                 ? handleLogin()
                 : handleLoginRecruiter();
             }}

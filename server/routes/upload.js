@@ -31,7 +31,7 @@ const upload = multer({ storage });
 
 
 const resumeSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   fileType: { type: String, required: true },
   filePath: { type: String, required: true }
 });
@@ -45,7 +45,6 @@ router.post('/resume', upload.single('file'), async (req, res) => {
   }
 
   const resume = new Resume({
-    userId: req.body.userId, 
     fileType: 'resume',
     filePath: req.file.path
   });

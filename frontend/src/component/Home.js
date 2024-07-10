@@ -15,8 +15,6 @@ import {
   MenuItem,
   Checkbox,
 } from "@mui/material";
-import Rating from "@mui/material/Rating";
-import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -66,7 +64,7 @@ const JobTile = (props) => {
   const handleApply = () => {
     axios
       .post(
-        `${apiList.jobs}/${job._id}/applications`,
+        `${apiList.jobs}/${job?._id}/applications`,
         { sop: sop },
         {
           headers: {
@@ -92,27 +90,23 @@ const JobTile = (props) => {
       });
   };
 
-  const deadline = new Date(job.deadline).toLocaleDateString();
+  const dateOfPosting = new Date(job?.dateOfPosting).toLocaleDateString();
 
   return (
     <StyledPaper elevation={3}>
       <Grid container>
         <Grid container item xs={9} spacing={1} direction="column">
           <Grid item>
-            <Typography variant="h5">{job.title}</Typography>
+            <Typography variant="h5">{job?.title}</Typography>
           </Grid>
+          <Grid item>Role: {job?.jobType}</Grid>
+          <Grid item>Salary: &#8377; {job?.salary} per month</Grid>
+          <Grid item>Date of Posting: {dateOfPosting}</Grid>
+          <Grid item>Location: {job?.location}</Grid>
+          {/* <Grid item>Years of Experience Required: {job?.yearsOfExperienceReq}</Grid> */}
+          {/* <Grid item>Posted By: {job?.recruiter?.name}</Grid> */}
           <Grid item>
-            <Rating value={job.rating !== -1 ? job.rating : null} readOnly />
-          </Grid>
-          <Grid item>Role : {job.jobType}</Grid>
-          <Grid item>Salary : &#8377; {job.salary} per month</Grid>
-          <Grid item>
-            Duration : {job.duration !== 0 ? `${job.duration} month` : `Flexible`}
-          </Grid>
-          <Grid item>Posted By : {job.recruiter.name}</Grid>
-          <Grid item>Application Deadline : {deadline}</Grid>
-          <Grid item>
-            {job.skillsets.map((skill, index) => (
+            {job?.skills.map((skill, index) => (
               <Chip key={index} label={skill} style={{ marginRight: "2px" }} />
             ))}
           </Grid>
@@ -164,10 +158,16 @@ const JobTile = (props) => {
 const FilterPopup = (props) => {
   const { open, handleClose, searchOptions, setSearchOptions, getData } = props;
 
+  const handleApplyFilters = () => {
+    getData(); // Fetch data with updated filters
+    handleClose(); // Close the filter modal
+  };
+
   return (
     <Modal open={open} onClose={handleClose}>
       <StyledModalPaperFilter>
         <Grid container direction="column" alignItems="center" spacing={3}>
+          {/* Job Type */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Job Type
@@ -235,6 +235,7 @@ const FilterPopup = (props) => {
               </Grid>
             </Grid>
           </Grid>
+          {/* Salary */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Salary
@@ -242,7 +243,7 @@ const FilterPopup = (props) => {
             <Grid item xs={9}>
               <Slider
                 valueLabelDisplay="auto"
-                valueLabelFormat={(value) => value * (100000 / 100)}
+                valueLabelFormat={(value) => value * 1000} // Display in INR
                 marks={[
                   { value: 0, label: "0" },
                   { value: 100, label: "100000" },
@@ -257,41 +258,38 @@ const FilterPopup = (props) => {
               />
             </Grid>
           </Grid>
+          {/* Location */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
-              Duration
+              Location
             </Grid>
             <Grid item xs={9}>
               <TextField
                 select
-                label="Duration"
+                label="Location"
                 variant="outlined"
                 fullWidth
-                value={searchOptions.duration}
+                value={searchOptions.location}
                 onChange={(event) =>
                   setSearchOptions({
                     ...searchOptions,
-                    duration: event.target.value,
+                    location: event.target.value,
                   })
                 }
               >
-                <MenuItem value="0">All</MenuItem>
-                <MenuItem value="1">1</MenuItem>
-                <MenuItem value="2">2</MenuItem>
-                <MenuItem value="3">3</MenuItem>
-                <MenuItem value="4">4</MenuItem>
-                <MenuItem value="5">5</MenuItem>
-                <MenuItem value="6">6</MenuItem>
-                <MenuItem value="7">7</MenuItem>
+                <MenuItem value="Remote">Remote</MenuItem>
+                <MenuItem value="On-site">On-site</MenuItem>
+                <MenuItem value="Hybrid">Hybrid</MenuItem>
               </TextField>
             </Grid>
           </Grid>
+          {/* Sort */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Sort
             </Grid>
             <Grid item container xs={9} direction="row">
-              {["salary", "duration", "rating"].map((sortType) => (
+              {["salary"].map((sortType) => (
                 <Grid
                   item
                   container
@@ -354,211 +352,207 @@ const FilterPopup = (props) => {
               ))}
             </Grid>
           </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleApplyFilters}
+              style={{ marginTop: "20px" }}
+            >
+              Apply Filters
+            </Button>
+          </Grid>
         </Grid>
       </StyledModalPaperFilter>
     </Modal>
   );
 };
 
+
+
+
 const Home = () => {
-const [jobs, setJobs] = useState([]);
-const [filterOpen, setFilterOpen] = useState(false);
-const [searchOptions, setSearchOptions] = useState({
-  query: "",
-  jobType: {
-    fullTime: false,
-    partTime: false,
-    wfh: false,
-  },
-  salary: [0, 100],
-  duration: "0",
-  sort: {
-    salary: {
-      status: false,
-      desc: false,
+  const [jobs, setJobs] = useState([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchOptions, setSearchOptions] = useState({
+    query: "",
+    jobType: {
+      fullTime: false,
+      partTime: false,
+      wfh: false,
     },
-    duration: {
-      status: false,
-      desc: false,
-    },
-    rating: {
-      status: false,
-      desc: false,
-    },
-  },
-});
-
-const setPopup = useContext(SetPopupContext);
-
-useEffect(() => {
-  getData();
-}, []);
-
-const getData = () => {
-  let searchParams = [];
-  if (searchOptions.query !== "") {
-    searchParams = [...searchParams, `q=${searchOptions.query}`];
-  }
-  if (searchOptions.jobType.fullTime) {
-    searchParams = [...searchParams, `jobType=Full%20Time`];
-  }
-  if (searchOptions.jobType.partTime) {
-    searchParams = [...searchParams, `jobType=Part%20Time`];
-  }
-  if (searchOptions.jobType.wfh) {
-    searchParams = [...searchParams, `jobType=Work%20From%20Home`];
-  }
-  if (searchOptions.salary[0] != 0) {
-    searchParams = [
-      ...searchParams,
-      `salaryMin=${searchOptions.salary[0] * 1000}`,
-    ];
-  }
-  if (searchOptions.salary[1] != 100) {
-    searchParams = [
-      ...searchParams,
-      `salaryMax=${searchOptions.salary[1] * 1000}`,
-    ];
-  }
-  if (searchOptions.duration != "0") {
-    searchParams = [...searchParams, `duration=${searchOptions.duration}`];
-  }
-
-  let asc = [],
-    desc = [];
-
-  Object.keys(searchOptions.sort).forEach((obj) => {
-    const item = searchOptions.sort[obj];
-    if (item.status) {
-      if (item.desc) {
-        desc = [...desc, `desc=${obj}`];
-      } else {
-        asc = [...asc, `asc=${obj}`];
-      }
-    }
-  });
-  searchParams = [...searchParams, ...asc, ...desc];
-  const queryString = searchParams.join("&");
-  console.log(queryString);
-  let address = apiList.jobs;
-  if (queryString !== "") {
-    address = `${address}?${queryString}`;
-  }
-
-  axios
-    .get(address, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+    salary: [0, 100],
+    location: "",
+    sort: {
+      salary: {
+        status: false,
+        desc: false,
       },
-    })
-    .then((response) => {
-      console.log(response.data);
-      setJobs(
-        response.data.filter((obj) => {
-          const today = new Date();
-          const deadline = new Date(obj.deadline);
-          return deadline > today;
-        })
-      );
-    })
-    .catch((err) => {
-      console.log(err.response.data);
-      setPopup({
-        open: true,
-        severity: "error",
-        message: "Error",
-      });
+    },
+  });
+
+  const setPopup = useContext(SetPopupContext);
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const getData = () => {
+    let searchParams = [];
+    if (searchOptions.query !== "") {
+      searchParams = [...searchParams, `q=${searchOptions.query}`];
+    }
+    if (searchOptions.jobType.fullTime) {
+      searchParams = [...searchParams, `jobType=Full%20Time`];
+    }
+    if (searchOptions.jobType.partTime) {
+      searchParams = [...searchParams, `jobType=Part%20Time`];
+    }
+    if (searchOptions.jobType.wfh) {
+      searchParams = [...searchParams, `jobType=Work%20From%20Home`];
+    }
+    if (searchOptions.salary[0] !== 0) {
+      searchParams = [
+        ...searchParams,
+        `salaryMin=${searchOptions.salary[0] * 1000}`,
+      ];
+    }
+    if (searchOptions.salary[1] !== 100) {
+      searchParams = [
+        ...searchParams,
+        `salaryMax=${searchOptions.salary[1] * 1000}`,
+      ];
+    }
+    if (searchOptions.location !== "") {
+      searchParams = [...searchParams, `location=${searchOptions.location}`];
+    }
+
+    let asc = [],
+      desc = [];
+
+    Object.keys(searchOptions.sort).forEach((obj) => {
+      const item = searchOptions.sort[obj];
+      if (item.status) {
+        if (item.desc) {
+          desc = [...desc, `desc=${obj}`];
+        } else {
+          asc = [...asc, `asc=${obj}`];
+        }
+      }
     });
-};
+    searchParams = [...searchParams, ...asc, ...desc];
+    const queryString = searchParams.join("&");
+    console.log(queryString);
+    let address = apiList.jobs + "/posted";
+    if (queryString !== "") {
+      address = `${address}?${queryString}`;
+    }
 
-return (
-  <>
-    <Grid
-      container
-      item
-      direction="column"
-      alignItems="center"
-      sx={{ padding: 3, minHeight: "93vh" }}
-    >
+    axios
+      .get(address, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        setJobs(response.data);
+      })
+      .catch((err) => {
+        console.log(err.response.data);
+        setPopup({
+          open: true,
+          severity: "error",
+          message: "Error fetching jobs",
+        });
+      });
+  };
+
+  return (
+    <>
       <Grid
-        item
         container
+        item
         direction="column"
-        justifyContent="center"
         alignItems="center"
+        sx={{ padding: 3, minHeight: "93vh" }}
       >
-        <Grid item xs>
-          <Typography variant="h2">Jobs</Typography>
-        </Grid>
-        <Grid item xs>
-          <TextField
-            label="Search Jobs"
-            value={searchOptions.query}
-            onChange={(event) =>
-              setSearchOptions({
-                ...searchOptions,
-                query: event.target.value,
-              })
-            }
-            onKeyPress={(ev) => {
-              if (ev.key === "Enter") {
-                getData();
+        <Grid
+          item
+          container
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Grid item xs>
+            <Typography variant="h2">Jobs</Typography>
+          </Grid>
+          <Grid item xs>
+            <TextField
+              label="Search Jobs"
+              value={searchOptions.query}
+              onChange={(event) =>
+                setSearchOptions({
+                  ...searchOptions,
+                  query: event.target.value,
+                })
               }
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment>
-                  <IconButton onClick={() => getData()}>
-                    <SearchIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ width: 500 }}
-            variant="outlined"
-          />
-        </Grid>
-        <Grid item>
+              onKeyPress={(ev) => {
+                if (ev.key === "Enter") {
+                  getData();
+                }
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment>
+                    <IconButton onClick={() => getData()}>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: 500 }}
+              variant="outlined"
+            />
+          </Grid>
+          <Grid item>
           <IconButton onClick={() => setFilterOpen(true)}>
-            <FilterListIcon />
-          </IconButton>
+              <FilterListIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+
+        <Grid
+          container
+          item
+          xs
+          direction="column"
+          alignItems="stretch"
+          justifyContent="center"
+        >
+          {jobs.length > 0 ? (
+            jobs.map((job) => (
+              <JobTile job={job} key={job?._id} />
+            ))
+          ) : (
+            <Typography variant="h5" sx={{ textAlign: "center" }}>
+              No jobs found
+            </Typography>
+          )}
         </Grid>
       </Grid>
-
-      <Grid
-        container
-        item
-        xs
-        direction="column"
-        alignItems="stretch"
-        justifyContent="center"
-      >
-        {jobs.length > 0 ? (
-          jobs.map((job) => {
-            return <JobTile job={job} />;
-          })
-        ) : (
-          <Typography variant="h5" sx={{ textAlign: "center" }}>
-            No jobs found
-          </Typography>
-        )}
-      </Grid>
-      {/* <Grid item>
-      <Pagination count={10} color="primary" />
-    </Grid> */}
-    </Grid>
-    <FilterPopup
-      open={filterOpen}
-      searchOptions={searchOptions}
-      setSearchOptions={setSearchOptions}
-      handleClose={() => setFilterOpen(false)}
-      getData={() => {
-        getData();
-        setFilterOpen(false);
-      }}
-    />
-  </>
-);
+      <FilterPopup
+        open={filterOpen}
+        searchOptions={searchOptions}
+        setSearchOptions={setSearchOptions}
+        handleClose={() => setFilterOpen(false)}
+        getData={() => {
+          getData();
+          setFilterOpen(false);
+        }}
+      />
+    </>
+  );
 };
 
 export default Home;

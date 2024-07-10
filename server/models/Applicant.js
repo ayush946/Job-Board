@@ -8,28 +8,23 @@ let applicantSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    required: true,
   },
   resume: {
     type: String,
-    required: true,
   },
   education: [{
     institution: {
       type: String,
-      required: true,
     },
     degree: {
       type: String,
-      required: true,
     },
     startYear: {
       type: Date,
-      required: true,
+
     },
     endYear: {
       type: Date,
-      required: true,
     },
   }],
 });

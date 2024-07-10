@@ -495,19 +495,25 @@ const MyJobs = (props) => {
         setFilters={setFilters}
       /> */}
       <Grid container spacing={4} sx={{ padding: "40px"}}>
-        {jobs?.map((job) => (
+        {jobs.length!== 0 ? jobs.map((job) => (
           <Grid item xs={12} sm={6} md={4} key={job?._id}>
             <JobTile job={job} getData={fetchJobs} />
           </Grid>
-        ))}
+        )): 
+        <Grid item container sx={{ display: "flex", justifyContent: "center"}}>
+          No jobs posted by you
+        </Grid>
+      }
       </Grid>
+      {jobs.length!== 0 ?
       <Pagination
         count={totalPages}
         page={currentPage}
         onChange={handlePageChange}
         color="primary"
         sx={{ marginTop: "20px", alignSelf: "center" }}
-      />
+      />: null
+      }
     </>
   );
 };

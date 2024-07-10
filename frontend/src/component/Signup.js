@@ -338,7 +338,7 @@ const Login = () => {
             sx={{ width: "400px" }}
             value={signupDetails.role}
             onChange={(event) => {
-              handleInput("type", event.target.value);
+              handleInput("role", event.target.value);
             }}
           >
             <MenuItem value="applicant">Applicant</MenuItem>

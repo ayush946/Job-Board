@@ -18,11 +18,13 @@ const skillRoutes = require("./routes/skillRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const jobRoutes   = require("./routes/jobRoutes");
 const userRoutes = require("./routes/userRoutes");
+const uploadRoutes = require("./routes/upload"); 
 
 app.use('/skills', skillRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/recruiter', jobRoutes);
 app.use('/auth', userRoutes);
+app.use('/upload', uploadRoutes);
 
 app.get('/', (req, res) => {
   // testing route
